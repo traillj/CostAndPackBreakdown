@@ -41,12 +41,14 @@ namespace CostAndPackBreakdown
                 int value = Int32.Parse(size);
                 if (value < 1)
                 {
-                    message += "\nInvalid pack size:" + size;
+                    message += Environment.NewLine;
+                    message += "Invalid pack size:" + size;
                 }
             }
             catch
             {
-                message += "\nInvalid pack size:" + size;
+                message += Environment.NewLine;
+                message += "Invalid pack size:" + size;
             }
 
             // Validate cost
@@ -56,7 +58,8 @@ namespace CostAndPackBreakdown
             }
             catch
             {
-                message += "\nInvalid pack cost:" + cost;
+                message += Environment.NewLine;
+                message += "Invalid pack cost:" + cost;
             }
 
             return message;

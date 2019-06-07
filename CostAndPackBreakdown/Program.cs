@@ -12,14 +12,21 @@ namespace CostAndPackBreakdown
         /// </summary>
         static void Main(string[] args)
         {
-            if (args[0] == "test")
+            try
             {
-                Test.RunAllTests();
+                if (args[0] == "test")
+                {
+                    Test.RunAllTests();
 
-                Console.WriteLine();
-                Console.WriteLine("Press Enter to exit.");
-                Console.ReadLine();
-                return;
+                    Console.WriteLine();
+                    Console.WriteLine("Press Enter to exit.");
+                    Console.ReadLine();
+                    return;
+                }
+            }
+            catch
+            {
+                // No command line arguments
             }
 
             // Read the packs data file
@@ -78,15 +85,8 @@ namespace CostAndPackBreakdown
                 }
                 else
                 {
-                    // Get breakdown text
-                    output += requiredPacks.TotalSize + ": ";
-                    foreach (Pack pack in requiredPacks.PackList)
-                    {
-                        output += pack.Size + " ";
-                    }
-                    output += "\n";
-
-                    //GetCostAndPackBreakdown(requiredPacks, packCodeDict["YT2"]);
+                    output += GetCostAndPackBreakdown(requiredPacks, code);
+                    output += Environment.NewLine;
                 }
             }
         }
@@ -127,6 +127,7 @@ namespace CostAndPackBreakdown
             }
             catch (Exception e)
             {
+                message += Environment.NewLine;
                 message += "Invalid input: " + e.Message;
                 return message;
             }
@@ -137,18 +138,21 @@ namespace CostAndPackBreakdown
                 int qty = Int32.Parse(qtyPart);
                 if (qty < 1)
                 {
-                    message += "\nInvalid quantity:" + qtyPart;
+                    message += Environment.NewLine;
+                    message += "Invalid quantity:" + qtyPart;
                 }
             }
             catch
             {
-                message += "\nInvalid quantity:" + qtyPart;
+                message += Environment.NewLine;
+                message += "Invalid quantity:" + qtyPart;
             }
 
             // Validate product code
             if (!packCodeDict.ContainsKey(codePart))
             {
-                message += "\nProduct code not found:" + codePart;
+                message += Environment.NewLine;
+                message += "Product code not found:" + codePart;
             }
 
             return message;
@@ -309,11 +313,59 @@ namespace CostAndPackBreakdown
             return null;
         }
 
-        static string GetCostAndPackBreakdown(Packs requiredPacks)
+        /// <summary>
+        /// Gets a breakdown of one line of the order.
+        /// Includes the total cost and amounts of each pack type.
+        /// </summary>
+        public static string GetCostAndPackBreakdown(Packs requiredPacks,
+            string productCode)
         {
-            string output = "";
+            decimal totalCost = GetTotalCost(requiredPacks);
+            string output = requiredPacks.TotalSize + " " +
+                productCode + " $" + totalCost;
+
+            // Sort size descending
+            requiredPacks.PackList.Sort(
+                (x, y) => -1 * x.Size.CompareTo(y.Size));
+
+            // Generate line of pack type and quantity
+            int prevSize = 0;
+            int packQty = 0;
+            decimal prevCost = 0;
+            foreach (Pack pack in requiredPacks.PackList)
+            {
+                if (prevSize != pack.Size && prevSize != 0)
+                {
+                    output += Environment.NewLine + "  ";
+                    output += packQty + " x " + prevSize + " $" + prevCost;
+                    packQty = 1; // Current pack is different size
+                }
+                else
+                {
+                    packQty += 1;
+                }
+                prevSize = pack.Size;
+                prevCost = pack.Cost;
+            }
+            output += Environment.NewLine + "  ";
+            output += packQty + " x " + prevSize + " $" + prevCost;
 
             return output;
+        }
+
+        /// <summary>
+        /// Returns the total cost of the pack list.
+        /// </summary>
+        static decimal GetTotalCost(Packs requiredPacks)
+        {
+            decimal totalCost = 0;
+
+            foreach (Pack pack in requiredPacks.PackList)
+            {
+                totalCost += pack.Cost;
+            }
+
+            return totalCost;
         }
     }
 }
