@@ -46,5 +46,5 @@ In Visual Studio:
 Algorithm Remarks
 -----------------
 The algorithm to determine the minimum number of packs checks all combinations of 1 pack,
-then 2 packs, 3, 4, etc. The time and space complexity of this brute force approach is nⁿ
-where n is the number of packs required.
+then 2 packs, 3, 4, etc. The time and space complexity of this brute force approach is nⁿ,
+where n is the minimum number of packs required.
