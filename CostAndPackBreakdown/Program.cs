@@ -8,6 +8,12 @@ namespace CostAndPackBreakdown
     class Program
     {
         /// <summary>
+        /// Quantity limit to prevent an order
+        /// from using too much time or space.
+        /// </summary>
+        public const int MAX_QTY = 90;
+
+        /// <summary>
         /// Inputs the packs data file path and order.
         /// Outputs the cost and pack breakdown.
         /// </summary>
@@ -66,6 +72,13 @@ namespace CostAndPackBreakdown
                 string[] inputParts = input.Split(' ');
                 int qty = Int32.Parse(inputParts[0]);
                 string code = inputParts[1];
+
+                if (qty > MAX_QTY)
+                {
+                    FinishOrder("Error: Quantity cannot be above " + MAX_QTY);
+                    output = "";
+                    continue;
+                }
 
                 Packs requiredPacks =
                     GetMinRequiredPacks(qty, packCodeDict[code]);
