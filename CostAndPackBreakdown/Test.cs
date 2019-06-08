@@ -7,8 +7,6 @@ namespace CostAndPackBreakdown
     {
         public static void RunAllTests()
         {
-            Console.WriteLine("Test pack breakdown...");
-
             int numSuccess = 0;
             int numTests = 0;
 
@@ -27,6 +25,8 @@ namespace CostAndPackBreakdown
             packListTR.Add(new Pack("Toilet Rolls", "TR", "9", "7.99"));
 
             // Pack tests
+            Console.WriteLine("Test pack breakdown...");
+
             numSuccess += RunPackTest(30, packListYT2, "30 YT2 (2 packs)",
                 new List<int> { 15, 15 });
             numTests += 1;
@@ -44,6 +44,9 @@ namespace CostAndPackBreakdown
             numTests += 1;
 
             // Output tests
+            Console.WriteLine();
+            Console.WriteLine("Test final output...");
+
             string expectedOutput = "10 SH3 $8.98" + Environment.NewLine;
             expectedOutput += "  2 x 5 $4.49";
             Packs requiredPacks =
@@ -70,6 +73,7 @@ namespace CostAndPackBreakdown
                 "12 TR ");
             numTests += 1;
 
+            Console.WriteLine();
             Console.WriteLine(numSuccess + "/" + numTests + " successful");
         }
 
@@ -78,7 +82,31 @@ namespace CostAndPackBreakdown
         {
             try
             {
-                GetPackResult(qty, packList, expectedSizes);
+                Packs requiredPacks =
+                        Program.GetMinRequiredPacks(qty, packList);
+
+                if (expectedSizes == null)
+                {
+                    if (requiredPacks != null)
+                    {
+                        throw new Exception("Result is not null.");
+                    }
+                }
+                else
+                {
+                    foreach (Pack pack in requiredPacks.PackList)
+                    {
+                        if (!expectedSizes.Remove(pack.Size))
+                        {
+                            throw new Exception("Unexpected size returned.");
+                        }
+                    }
+
+                    if (expectedSizes.Count > 0)
+                    {
+                        throw new Exception("Incorrect number of packs.");
+                    }
+                }
 
                 Console.WriteLine(testName + ": Test Success");
                 return 1;
@@ -90,36 +118,6 @@ namespace CostAndPackBreakdown
             }
         }
 
-        static void GetPackResult(int requiredQty, List<Pack> packList,
-            List<int> expectedSizes)
-        {
-            Packs requiredPacks =
-                    Program.GetMinRequiredPacks(requiredQty, packList);
-
-            if (expectedSizes == null)
-            {
-                if (requiredPacks != null)
-                {
-                    throw new Exception("Result is not null.");
-                }
-            }
-            else
-            {
-                foreach (Pack pack in requiredPacks.PackList)
-                {
-                    if (!expectedSizes.Remove(pack.Size))
-                    {
-                        throw new Exception("Unexpected size returned.");
-                    }
-                }
-
-                if (expectedSizes.Count > 0)
-                {
-                    throw new Exception("Incorrect number of packs.");
-                }
-            }
-        }
-
         static int RunOutputTest(string expectedOutput, Packs requiredPacks,
             string productCode, string testName)
         {
@@ -128,12 +126,12 @@ namespace CostAndPackBreakdown
 
             if (output.Equals(expectedOutput))
             {
-                Console.WriteLine(testName + " output: Test Success");
+                Console.WriteLine(testName + ": Test Success");
                 return 1;
             }
             else
             {
-                Console.WriteLine(testName + " output: Test Fail");
+                Console.WriteLine(testName + ": Test Fail");
                 Console.WriteLine("Expected:");
                 Console.WriteLine(expectedOutput);
                 Console.WriteLine("Actual:");

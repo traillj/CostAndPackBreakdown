@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace CostAndPackBreakdown
 {
@@ -17,11 +18,7 @@ namespace CostAndPackBreakdown
                 if (args[0] == "test")
                 {
                     Test.RunAllTests();
-
-                    Console.WriteLine();
-                    Console.WriteLine("Press Enter to exit.");
-                    Console.ReadLine();
-                    return;
+                    PressEnterToExit("");
                 }
             }
             catch
@@ -38,10 +35,7 @@ namespace CostAndPackBreakdown
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error reading packs file: " + e.Message);
-                Console.WriteLine("Press Enter to exit.");
-                Console.ReadLine();
-                return;
+                PressEnterToExit("Error reading packs file: " + e.Message);
             }
 
             Console.WriteLine("Enter a blank line to finish the order.");
@@ -78,7 +72,7 @@ namespace CostAndPackBreakdown
 
                 if (requiredPacks == null)
                 {
-                    FinishOrder("Error: number ordered cannot " +
+                    FinishOrder("Error: Quantity ordered cannot " +
                         "be packed completely.");
                     output = "";
                     continue;
@@ -89,6 +83,18 @@ namespace CostAndPackBreakdown
                     output += Environment.NewLine;
                 }
             }
+        }
+
+        /// <summary>
+        /// Writes to the console the message.
+        /// Closes the application after Enter is pressed.
+        /// </summary>
+        static void PressEnterToExit(string message)
+        {
+            Console.WriteLine(message);
+            Console.WriteLine("Press Enter to exit.");
+            Console.ReadLine();
+            Environment.Exit(0);
         }
 
         /// <summary>
@@ -169,9 +175,9 @@ namespace CostAndPackBreakdown
         static Dictionary<string, List<Pack>> GetPackData()
         {
             // Get the file path to the pack data as input
-            //Console.WriteLine("Enter the path to the Packs file:");
-            //string packsPath = Console.ReadLine();
-            StreamReader reader = new StreamReader(@"C:\a\a\packs.txt");
+            Console.WriteLine("Enter the path to the Packs file:");
+            string packsPath = Console.ReadLine();
+            StreamReader reader = new StreamReader(packsPath);
 
             Dictionary<string, List<Pack>> packCodeDict =
                 new Dictionary<string, List<Pack>>();
@@ -239,7 +245,7 @@ namespace CostAndPackBreakdown
                 tryPacks = new Packs();
             }
             
-            tryPacks = GetCostAndPackCalc(tryPacksList,
+            tryPacks = GetMinRequiredPacksCalc(tryPacksList,
                 packsWithCode, requiredQty);
 
             return tryPacks;
@@ -257,7 +263,7 @@ namespace CostAndPackBreakdown
         /// Packs available of the required product code
         /// </param>
         /// <param name="requiredQty">Quantity required</param>
-        static Packs GetCostAndPackCalc(List<Packs> tryPacksList,
+        static Packs GetMinRequiredPacksCalc(List<Packs> tryPacksList,
             List<Pack> packsWithCode, int requiredQty)
         {
             while (tryPacksList.Count > 0)
@@ -321,8 +327,10 @@ namespace CostAndPackBreakdown
             string productCode)
         {
             decimal totalCost = GetTotalCost(requiredPacks);
-            string output = requiredPacks.TotalSize + " " +
-                productCode + " $" + totalCost;
+
+            StringBuilder output = new StringBuilder();
+            output.Append(requiredPacks.TotalSize + " ");
+            output.Append(productCode + " $" + totalCost);
 
             // Sort size descending
             requiredPacks.PackList.Sort(
@@ -336,8 +344,9 @@ namespace CostAndPackBreakdown
             {
                 if (prevSize != pack.Size && prevSize != 0)
                 {
-                    output += Environment.NewLine + "  ";
-                    output += packQty + " x " + prevSize + " $" + prevCost;
+                    output.Append(Environment.NewLine + "  ");
+                    output.Append(packQty + " x ");
+                    output.Append(prevSize + " $" + prevCost);
                     packQty = 1; // Current pack is different size
                 }
                 else
@@ -347,10 +356,11 @@ namespace CostAndPackBreakdown
                 prevSize = pack.Size;
                 prevCost = pack.Cost;
             }
-            output += Environment.NewLine + "  ";
-            output += packQty + " x " + prevSize + " $" + prevCost;
+            output.Append(Environment.NewLine + "  ");
+            output.Append(packQty + " x ");
+            output.Append(prevSize + " $" + prevCost);
 
-            return output;
+            return output.ToString();
         }
 
         /// <summary>
